@@ -1,0 +1,36 @@
+sudo: required
+language: go
+go:
+  - 1.7
+
+env:
+  - PLATFORM=android-arm
+  - PLATFORM=android-x64
+  - PLATFORM=android-x86
+  - PLATFORM=darwin-x64
+  - PLATFORM=linux-arm
+  - PLATFORM=linux-armv7
+  - PLATFORM=linux-arm64
+  - PLATFORM=linux-x64
+  - PLATFORM=linux-x86
+  - PLATFORM=windows-x64
+  - PLATFORM=windows-x86
+
+services:
+  - docker
+
+before_install:
+  - make pull
+
+install:
+  - go get -d ./...
+  - go get -d github.com/videofree/libtorrent-go
+
+script:
+  - go tool vet -unsafeptr=false .
+  - make libs
+  - make $PLATFORM
+  - |
+    if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ -n "${TRAVIS_TAG}" ]; then
+      travis_retry ./push-binaries.sh
+    fi
